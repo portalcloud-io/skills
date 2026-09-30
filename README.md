@@ -53,17 +53,17 @@ the result before handing it back.
 ## How `portal-app-icon` works
 
 ```text
-brief → concepts → assets/glyph.svg → portal icons generate/check/preview → audit → critique loop
+detect → brief → concepts → assets/glyph.svg → render/audit (fast) → portal icons generate → deliver
 ```
 
-1. **Detect** the Portal project and current icon state.
-2. **Brief** — capture the product, audience, personality, style, and palette.
-3. **Concepts** — propose 3–5 named directions with a central metaphor and a second reading.
-4. **Author** — write one clean, transparent, symbol-only SVG and patch `assets/icon-source.json`.
-5. **Generate** — run the Portal factory: one design → 15 per-variant assets
-   (`production` / `preview` / `development`).
-6. **Audit & critique** — check centering, safe zones, contrast, monochrome, and
-   small-size legibility, then iterate on a rubric.
+1. **Detect** the Portal project, the current icon state and its composition mode.
+2. **Brief** — capture the idea, a second reading, personality, and palette. The
+   reference quality bar is the [Playground icon](./docs/examples/playground/).
+3. **Concepts** — propose 3–5 genuinely different directions (not one idea in finishes).
+4. **Author** — one clean SVG glyph, in `symbol`, `rich-gradient` or `composed` mode.
+5. **Render & audit** — a fast contact sheet + a measured report; iterate before the
+   factory runs.
+6. **Generate** — one design → 15 per-variant assets (`production`/`preview`/`development`).
 
 ## Requirements
 
@@ -81,14 +81,16 @@ plugin lives under `plugins/<name>/` and exposes one or more skills under
 ```text
 .
 ├── .claude-plugin/marketplace.json
-├── docs/preview.png
+├── docs/
+│   ├── preview.png
+│   └── examples/playground/   # the reference quality bar (brief + SVG + preview)
 ├── plugins/
 │   └── portal-app-icon/
 │       ├── README.md
 │       └── skills/portal-app-icon/
 │           ├── SKILL.md
-│           ├── references/   # brief, SVG contract, concepts & styles, rubric
-│           └── scripts/      # detect, audit-icon, preview
+│           ├── references/   # brief, example, composition modes, contract, rubrics
+│           └── scripts/      # detect, render, audit-icon, preview (+ lib/)
 └── README.md
 ```
 
