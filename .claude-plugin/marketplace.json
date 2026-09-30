@@ -1,0 +1,16 @@
+{
+  "name": "portalcloud-plugins",
+  "owner": {
+    "name": "portalcloud-io"
+  },
+  "metadata": {
+    "description": "Agent skills and plugins for the Portal ecosystem"
+  },
+  "plugins": [
+    {
+      "name": "portal-app-icon",
+      "source": "./plugins/portal-app-icon",
+      "description": "Design and install a professional, brand-consistent app icon glyph for Portal-managed Expo apps (SVG-authored, synced backgrounds, portal icons generate/check/preview)"
+    }
+  ]
+}
