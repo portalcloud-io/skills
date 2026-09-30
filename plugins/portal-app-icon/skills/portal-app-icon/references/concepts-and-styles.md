@@ -17,25 +17,44 @@ Decide the archetype **before** drawing. Never default to a mascot.
 
 ## 2. Anti-failure rules (always on)
 
-- Context: a standalone symbol, **not** an app-launcher tile or UI mockup.
-- Do not draw a rounded-square tile, card, badge, plate, or device chrome behind the
-  subject.
-- The canvas has sharp 90° corners; never simulate a rounded app-icon mask.
-- No global drop shadow, cast shadow, halo, glow, or bloom.
+- Context: a standalone symbol, **not** a UI mockup or device chrome.
+- No device frame, no card stuck on a card, no badge/chip chrome, no mockup.
+- A rounded-square tile/plate behind the subject is **allowed in `composed` mode**
+  (like the Playground icon) and **forbidden in `symbol` mode**. See
+  `composition-modes.md`. Either way: no fake shadow plate, no "icon inside an icon".
+- No global drop shadow, cast shadow, halo, glow, or bloom — a *subtle* radial ambient
+  glow inside a composed background is fine.
 - No text, numbers, monograms, watermark.
 - No photo/portrait/real-world scene; no realistic human faces as the main subject.
 - Do not copy or imitate real brand logos or trademarked shapes.
 - Subject fills a strong portion of the canvas but within the safe zones (below).
 - Keep it clean: low noise, low detail, one focal point.
 
+### The Playground restriction set (canonical anti-tells)
+
+Harvested from the brief that produced the best-known Portal icon — use it as the
+default "avoid" list unless the brief says otherwise:
+
+- No letters, initials, text, monograms (`P`, `Playground`, …).
+- No literal dev icons: `</>`, brackets, terminals, cursors, code, chips, circuits,
+  robots, brains, charts, lightbulbs, rockets, 3D cubes, AI sparkle/star.
+- No literal product imagery (a literal playground, piggy bank, heart organ, …).
+- No "AI-generated logo" aesthetic: 3D, renders, metallic/chrome, cinematic lighting,
+  heavy glow, dramatic shadows, mockups, textures, excessive detail.
+- Must feel like it came from a specialist branding studio.
+
+See `example-playground.md` for how these constraints produced an ownable mark.
+
 ## 3. Safe areas (Portal factory)
 
-- Canvas: 1024×1024, transparent.
-- iOS: symbol within `safeZone` 0.66 of the canvas.
+- Canvas: `1024×1024`.
+- iOS: content within `safeZone` 0.66 of the canvas.
 - Android adaptive: `glyphScale` 0.45.
-- Design so the mark is comfortable at the Android scale; extra breathing room is
-  better than clipping.
-- Readable at 16 px (favicon/CLI), 32 px, and 1024 px; works on light and dark.
+- `symbol` mode authors the mark inside those zones with a transparent background;
+  `composed` mode authors the full artwork (tile included) and the factory still scales
+  its bounding box to the safe zone. Either way, extra breathing room beats clipping.
+- Readable at 16 px (favicon/CLI), 32 px, and 1024 px; works on light and dark, and in
+  grayscale.
 
 ## 4. Concept quality bar (from the Playground brief)
 

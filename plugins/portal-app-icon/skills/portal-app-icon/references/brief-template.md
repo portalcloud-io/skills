@@ -1,90 +1,90 @@
-# App Icon Brief — template
+# App Icon Brief — guide
 
-Fill this before drawing anything. Keep it short; the goal is a decision, not an essay.
-Adapted from the brief that produced the Playground icon (L-Wallet), which is the
-reference quality bar.
+> A **guide, not a form**. Its job is to force a few real decisions before drawing.
+> Skip fields you can infer; invent the shape that fits the app. The reference quality
+> bar is the Playground icon — see `example-playground.md` and
+> `../../../../../docs/examples/playground/`.
+
+Fill it in your head, or in 6–8 lines of prose. Do not turn it into a bureaucracy.
 
 ---
 
-## 1. Product
+## 1. Product (infer first, ask only what is missing)
 
-- **Name**: {{APP_NAME}}
-- **One-liner** ("X helps Y do Z"): {{ONE_LINER}}
-- **Audience**: {{AUDIENCE}}
-- **Category**: {{fintech | health | productivity | dev tool | social | games | …}}
+- **Name**:
+- **One-liner** — "an app that helps ___ do ___":
+- **Audience**:
+- **Category**: fintech · health · productivity · dev tool · social · games · …
 
-## 2. Positioning & personality
+## 2. Idea & second reading (the core)
 
-Pick 3–5. Personality must come from **geometry and proportion**, never from literal
-illustration or childish elements.
+- **Central idea** — one sentence, the *concept*, not the drawing.
+  e.g. *"A space where you can experiment."*
+- **Second reading** — what the geometry *additionally* suggests, never literal.
+  e.g. *"A quiet 'P' for those who look."*
 
-- [ ] Premium / refined
-- [ ] Playful / dynamic
-- [ ] Elegant / minimal
-- [ ] Technical / developer-centric
-- [ ] Trustworthy / secure
-- [ ] Calm / wellness
-- [ ] Energetic / bold
-- Other: {{…}}
+If you can't state both, the mark will be generic. This is the highest-leverage step.
 
-## 3. Central concept
+## 3. Personality (3–4 adjectives, through geometry)
 
-> One sentence: the *idea*, not the drawing. e.g. "An open laboratory where parts
-> combine and evolve."
+Premium · playful · elegant · technical · trustworthy · calm · bold · minimalist · …
 
-- **Central idea**: {{CENTRAL_IDEA}}
-- **Second reading** (what the geometry suggests conceptually, never literal):
-  {{SECOND_READING}}
+Achieve them through **proportion, rhythm and interaction between shapes**, never
+through literal illustration or childish elements. See `concepts-and-styles.md`.
 
-## 4. Geometry & structure (decide before drawing)
+## 4. Composition (decide before drawing)
 
-- **Primitive count**: 2–4 primary shapes (fewer is better).
-- **Construction**: grid-based; concentric radii where possible; explicit negative
-  space (a continuous channel, not accidental gaps).
-- **Silhouette**: balanced but slightly dynamic; must read with no color.
-- **Optical size**: symbol occupies a comfortable fraction of the canvas, sized for
-  the iOS safe zone (~0.66) and Android glyph scale (~0.45). Do not rely on the
-  factory upscaling — it only shrinks.
+- **Primitives**: 2–4 primary shapes (fewer is stronger).
+- **Construction**: grid; **concentric radii**; a *continuous* negative-space channel.
+- **Proportions**: give real numbers when you commit (radii, thickness, spacing) —
+  exact numbers are what make a mark feel built.
+- **Mode** (see `composition-modes.md`): `symbol` (background supplied by Portal) or
+  `composed` (the artwork includes its own tile/background). Choose from the brief and
+  state the tradeoff. No default is forced.
+- **Silhouette**: balanced but slightly dynamic; must read with no color and at 16 px.
 
 ## 5. Color
 
-- **Background**: {{#0A0F14-style deep tone}}
-- **Accent family**: {{e.g. teal / cyan / mint}} → `colors.PRIMARY` token.
-- Accent must keep ≥ 3:1 contrast with the background (see the auditor).
+- **Direction**: one family (e.g. teal/cyan/mint) + a deep tone. One mood, not a rainbow.
+- **Rendering**: hardcoded hex is fine (like Playground). Use `{{PRIMARY}}`-style tokens
+  **only when the icon should respond to the app palette / variants**.
 
-## 6. Absolute restrictions (non-negotiable)
+## 6. Restrictions (keep these; they prevent generic output)
 
-- **No** text, letters, initials, monograms, or taglines in the symbol.
-- **No** literal app-function icons: no `</>`, brackets, terminals, cursors, chips,
-  circuits, robots, brains, charts, lightbulbs, rockets, 3D cubes, AI stars/sparkles.
-- **No** literal representation of the product category (no literal piggy banks,
-  hearts-as-organs, etc.).
-- **No** "AI-generated logo" aesthetic: no 3D renders, no metallic/chrome, no
-  dramatic shadows, no glow/bloom, no lens flare, no mockups, no texture noise.
-- **No** rounded-square tile / card / badge / outer plate behind the subject.
-- Works on both light and dark wallpapers and in **monochrome**.
+- No text, letters, initials, monograms or taglines.
+- No literal app-function icons (`</>`, brackets, terminals, cursors, chips, circuits,
+  robots, brains, charts, lightbulbs, rockets, 3D cubes, AI sparkles).
+- No literal representation of the product.
+- No "AI-generated logo" tells: no 3D render, no chrome/metal, no dramatic shadows, no
+  heavy glow/bloom, no lens flare, no mockup, no texture noise.
+- Must read at **16 px**, in **grayscale**, and on light and dark.
 
-## 7. Output format
+> A rounded-square tile/plate behind the subject is **allowed** in `composed` mode (see
+> `composition-modes.md`) and **not** in `symbol` mode.
 
-- SVG, `viewBox="0 0 1024 1024"`, centered, transparent background (symbol only).
-- Optimized: no redundant nodes, minimal decimals, inline styles.
-- Accent color expressed as the `{{PRIMARY}}` token (resolved from
-  `assets/icon-source.json`).
+## 7. Output
+
+- SVG, `viewBox="0 0 1024 1024"`, centered, optimized (minimal nodes/decimals).
+- Symbol/artwork sized for the iOS safe zone (~0.66) and Android glyph scale (~0.45).
+  The factory only shrinks — don't author edge-to-edge.
 
 ---
 
-## Concept directions — required output format
+## Concepts — output shape (3–5 before drawing)
 
-Before drawing, output **3–5** directions in this shape and ask the user to pick:
+Emit directions in roughly this shape, then let the user pick (or pick the strongest if
+they said "you decide", stating why):
 
 ```
-### Concept N — {{short_name}}
-Metaphor: {{the idea in one line}}
-Second reading: {{what the geometry additionally suggests}}
-Geometry: {{2–4 primitives, grid, radii, negative-space channel}}
-Small-size: {{why it reads at 16 px and in monochrome}}
-Risks: {{what could make it generic / unreadable}}
+### Concept N — short_name
+Idea:            the concept in one line
+Second reading:  what the geometry additionally suggests
+Geometry:        2–4 primitives, grid, radii, negative-space channel
+Mode:            symbol | composed
+Small-size:      why it reads at 16 px and in monochrome
+Risks:           what could make it generic or unreadable
 ```
 
-Then draw only the chosen concept. If the user delegates the choice, pick the
-direction with the strongest silhouette + clearest second reading and say why.
+Draw **only the chosen concept**. It's normal to align the finish (radii, spacing)
+after picking — but the concepts should be genuinely different shapes, not one idea in
+different finishes.

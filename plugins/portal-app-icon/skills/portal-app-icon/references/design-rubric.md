@@ -1,54 +1,52 @@
-# Icon critique rubric
+# Icon critique — "what makes a symbol great"
 
-Score the **rendered result** (the `portal icons preview` collage and the audit
-report), not your intentions. Score each dimension 0–5. Pass = every dimension ≥ 3
-and total ≥ 26/35. Iterate only on the failing dimensions; if two iterations do not
-raise a score, simplify the concept (return to Phase 2).
+This is a **lens**, not a score machine. Judge the *rendered* result (the `render.mjs`
+contact sheet, and `audit-icon.mjs` for numbers), never your intentions.
 
-| # | Dimension | 0 | 3 | 5 |
+The reference: the Playground icon (`example-playground.md`) — a 5 on every line.
+
+For each line: write **one sentence of evidence**, then decide whether it is a problem
+worth a change. Iterate only on real problems. If two iterations don't improve the
+weakest line, go back to concepts (a different *shape*, not a different finish).
+
+| # | Line | Weak (0) | Solid (3) | Reference (5) |
 |---|---|---|---|---|
-| 1 | **Silhouette** | mushy, ambiguous | readable shape | distinctive, ownable outline |
-| 2 | **Small-size legibility** | collapses at 32 px | holds at 32 px | crisp at 16 px (grayscale) |
-| 3 | **Concept relevance** | generic / unrelated | clearly tied to product | idea + a genuine second reading |
-| 4 | **Distinctiveness** | looks like an AI template | not generic | memorable vs category peers |
-| 5 | **Balance & centering** | off-center, drifting | optically centered | deliberate dynamic balance |
-| 6 | **Contrast** | accent fades into bg | clean separation | premium contrast, harmonized palette |
-| 7 | **Craft / no-tells** | amateur or "AI-logo" tells | clean and professional | studio-grade, timeless |
+| 1 | **Idea** | generic / none | tied to the product | one sentence + a genuine second reading |
+| 2 | **Silhouette** | mushy, ambiguous | readable shape | distinctive, ownable outline |
+| 3 | **Construction** | eyeballed, accidental gaps | on a grid, concentric radii | exact proportions, a continuous negative-space channel |
+| 4 | **Small-size** | collapses by 32 px | holds at 32 px | crisp at 16 px, in grayscale |
+| 5 | **Craft / no-tells** | amateur or "AI-logo" | clean and professional | studio-grade, timeless |
+| 6 | **Color** | muddy / rainbow | clean separation | one family + deep tone, premium |
+| 7 | **Distinctiveness** | looks like an AI template | not generic | memorable vs category peers |
 
-## Automatic metrics that back each dimension
+## Evidence from the tools (numbers, not vibes)
 
-From `node scripts/audit-icon.mjs` (these are *evidence*, not the score):
+`node scripts/render.mjs` — one fast contact sheet, no factory run:
+- the mark at 16/32/64/128/256 px on the app background and on light;
+- a monochrome pass (Android themed-icon preview);
+- a safe-zone overlay (blue = iOS `safeZone`, dashed amber = Android `glyphScale`).
 
-- **Transparent, symbol-only**: corners alpha 0 and no full-canvas fill → dimension 7.
-- **Optical centering**: glyph bbox center offset from (512, 512); flag > ~4% of the
-  canvas → dimensions 5.
-- **Safe zone**: rendered content within `safeZone` (iOS) and `glyphScale` (Android)
-  without clipping → dimensions 1, 2.
-- **Contrast**: WCAG contrast ratio between `PRIMARY` and `background`; target ≥ 3:1
-  → dimension 6.
-- **Monochrome**: grayscale separability of the mark (usable as Android
-  `monochromeImage`) → dimensions 2, 7.
-- **Small-size survivability**: coverage at 16/32/64 px should stay stable (not drop
-  to near-zero, not saturate to a blob) → dimension 2.
-- **Background sync**: `icon-source.json.background` == iOS `.icon` fill ==
-  `android.adaptiveIcon.backgroundColor` == `splashBackgroundColor` → dimension 6.
+`node scripts/audit-icon.mjs` — measured report:
+- **Composition mode** (`symbol` / `composed`) and coverage.
+- **Optical centering**: bbox center offset from the canvas center.
+- **Safe zone**: rendered extent vs `safeZone` / `glyphScale` (no clipping).
+- **Contrast**: WCAG ratio between `PRIMARY` and `background` (target ≥ 3:1).
+- **Small-size**: for `symbol`, alpha coverage at 16/64 px; for `composed`, surviving
+  tonal range at 16 px.
+- **Monochrome**: for `composed`, a warning that the tile becomes a solid block.
+- **Background surfaces**: sync across icon-source / iOS fill / Android / splash.
 
-## How to critique in the loop
-
-1. Screenshot the collage (browser tools) or read the PNG.
-2. For each dimension, write one sentence of evidence + the score.
-3. Name the **single highest-leverage fix** and apply it to the SVG.
-4. Re-run `preview.mjs` + `audit-icon.mjs`; re-score.
-5. Stop at pass or after ~4 iterations.
+> Only `{{TOKEN}}` colors are substituted before measuring (same as the factory). A
+> mark colored via `stroke="{{PRIMARY}}"` is measured correctly.
 
 ## Common failure → fix
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| Icon looks like a rounded tile | background baked into the glyph | remove the full-canvas rect; keep symbol-only |
-| Clipped/small on Android, fine on iOS | symbol too large for `glyphScale` | shrink the mark, recenter |
-| Vanishes at small sizes | hairline details / low coverage | thicker primitives, one focal point |
-| "AI-generated logo" feel | 3D/glow/metal/shadows | flat or softly shaded 2D, matte, no bloom |
-| Generic | literal function icon | new metaphor with a second reading |
-| Monochrome is a solid block | opaque tile used as the mark | make the background transparent |
-| Muddy on light/dark | accent too close to bg or to mid-gray | raise contrast, check grayscale |
+| Feels "AI-generated" | 3D/glow/metal/heavy shadow | flat or softly shaded 2D, matte |
+| Generic | literal function icon | a new metaphor with a second reading |
+| Eyeballed / wobbly | no grid, no concentric radii | commit to real numbers, rebuild on a grid |
+| Vanishes at 16 px | hairline details / low coverage | thicker primitives, one focal point |
+| Clipped/small on Android | mark too large for `glyphScale` | shrink the mark, keep breathing room |
+| Monochrome is a solid block | `composed` tile used as the mark | switch to `symbol` mode for theming |
+| Muddy on light/dark | accent too close to bg or mid-gray | raise contrast, check grayscale |
