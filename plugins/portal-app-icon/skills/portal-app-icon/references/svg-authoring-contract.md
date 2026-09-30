@@ -1,79 +1,89 @@
-# `assets/glyph.svg` authoring contract
+# `assets/glyph.svg` — authoring contract
 
-This is the exact contract the Portal icon factory expects. It was derived from the
-CLI source (`packages/cli/src/icons/*`) and verified against generated output. Follow
-it literally.
+What the Portal factory actually requires, and what it leaves to you. Derived from the
+CLI source (`packages/cli/src/icons/*`) and verified against generated output.
+
+> **This is a contract for what the factory needs — not a style rulebook.** The look of
+> the mark (flat, rich, or a full composed tile) is your call. See `composition-modes.md`.
 
 ## 1. What the factory does with your SVG
 
 ```
-assets/glyph.svg ──► normalizeGlyph ──► composeFull ──► writeVariantAssets
-                    (bbox + safeZone)   (+ badge)       (5 files × 3 variants)
+assets/glyph.svg ──► substituteColors ──► normalizeGlyph ──► composeFull ──► writeVariantAssets
+                      ({{TOKEN}} → hex)   (bbox + safeZone)   (+ badge)       (5 files × 3 variants)
 ```
 
-- `normalizeGlyph` rasterizes the SVG (sharp/librsvg), finds the bounding box of
-  **non-transparent pixels**, and centers it on a transparent 1024×1024 canvas. It
-  **only shrinks** (never upscales) so the content fits `safeZone` of the canvas.
-- `composeFull` composites the normalized glyph on a **transparent** canvas and adds
-  the per-variant badge. It does **not** paint `icon-source.json.background`.
-- Therefore the PNG background is whatever your SVG contains. For the app-launcher
-  glyph the correct answer is **transparent, symbol only** — the background is
-  supplied separately (iOS `.icon` fill, Android `adaptiveIcon.backgroundColor`,
-  splash color).
+- `substituteColors` replaces each `{{TOKEN}}` with `icon-source.json.colors[TOKEN]`
+  **before** rasterizing. It throws if a token is not defined — so any token you use
+  must exist in `colors`.
+- `normalizeGlyph` rasterizes the SVG (sharp/librsvg), finds the bounding box of the
+  **non-transparent pixels** and centers it on a transparent 1024×1024 canvas. It
+  **only shrinks** (never upscales) to fit `safeZone`.
+- `composeFull` adds the per-variant badge. It does **not** paint
+  `icon-source.json.background` into the PNG.
 
-## 2. Hard rules
+## 2. What the factory requires (non-negotiable)
 
-1. **Symbol only / transparent background.** No full-canvas `<rect>` background, no
-   card, plate, rounded-square tile, shadow plate, or badge.
-2. **Root element**
+1. **Root element** with the canvas:
    ```svg
    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
    ```
-   `viewBox` is always `0 0 1024 1024`.
-3. **No text.** No `<text>`, `<tspan>`, letters, monograms, watermarks.
-4. **Accent color only via the `{{PRIMARY}}` token.** The factory replaces the token
-   with `colors.PRIMARY` from `assets/icon-source.json`. If you need more than one
-   color, add each token to `icon-source.json.colors` first (keep it to `PRIMARY`
-   in the default flow — one accent is stronger).
-5. **Monochrome-safe.** The same `android-icon.png` is reused as Android's
-   `monochromeImage` for themed icons, tinted by the system. The mark must read as a
-   solid silhouette from alpha alone. Do not make meaning depend on hue; avoid
-   hairline details that vanish — keep strokes/detail ≥ ~28 px at this scale.
-6. **Small-size legibility.** Must read at 16–32 px and in grayscale. One focal
-   point; strong silhouette; generous negative space.
-7. **Optical sizing.** Design the mark to sit well within the iOS safe zone
-   (~0.66 of the canvas) and Android glyph scale (~0.45). The factory only shrinks,
-   so don't author the symbol edge-to-edge.
-8. **Optical centering.** Geometric bbox should be centered around (512, 512).
-   Compensate for asymmetric shapes so the *optical* center (not just the math
-   center) looks centered. The auditor measures the offset.
-9. **No badge.** `DEV` / `PRE` are added by the factory; never bake them in.
-10. **Valid, self-contained SVG.** No `<image>`, no external URLs, no `<script>`, no
-    CSS `@import`, no references to `node_modules`. Inline presentation attributes are
-    preferred over `<style>` blocks for maximum librsvg reliability.
+   `viewBox` is `0 0 1024 1024`.
+2. **Valid, self-contained SVG.** No `<script>`, no external URLs, no `@import`, no
+   references to `node_modules`. Inline presentation attributes are more reliable under
+   librsvg than `<style>` blocks.
+3. **Every `{{TOKEN}}` you use must exist** in `icon-source.json.colors`. Throw-free:
+   if you don't want tokens, use hardcoded hex.
+4. **No badge.** `DEV` / `PRE` are added by the factory; never bake them in.
+5. **Visible content.** The glyph must have opaque pixels (an all-transparent SVG fails
+   `normalizeGlyph`).
 
-## 3. Allowed building blocks
+That's it. Everything else is design.
 
-- Elements: `<g>`, `<path>`, `<rect>`, `<circle>`, `<ellipse>`, `<polygon>`,
-  `<line>`, `<defs>`, `<linearGradient>`, `<radialGradient>`, `<stop>`.
-- Attributes: `fill`, `fill-opacity`, `stroke`, `stroke-width`, `stroke-linecap`,
-  `stroke-linejoin`, `opacity`, `transform`, `rx`/`ry`.
-- Prefer exact geometric curves (`A`, `Q`, `C`) and concentric radii.
+## 3. Design choices (yours to make)
 
-Avoid `<filter>` effects (blur/glow) — they render inconsistently and fight the
-"no AI-look" requirement. Gradients *within* the mark are allowed and encouraged for
-premium depth, but the mark must still work in monochrome.
+**Composition mode** (`composition-modes.md`):
+- `symbol` — transparent, symbol only; the background comes from Portal.
+- `composed` — the artwork includes its own tile/background (Playground style); the
+  Portal background surfaces become redundant.
+- `rich-gradient` — rich symbol, transparent background.
 
-## 4. Color & background synchronization
+**Background / tile.** A full-canvas `<rect>` (rounded or not) is **allowed** in
+`composed` mode and forbidden in `symbol` mode. A *subtle* radial ambient glow inside a
+composed background is fine; heavy bloom/bloom-lighting is an "AI-logo" tell.
 
-`icon-source.json.background` drives the iOS 26 `.icon` fill. The skill also syncs
-`android.adaptiveIcon.backgroundColor` and `splashBackgroundColor` to the same hex so
-all three surfaces match. Accent (`PRIMARY`) must keep ≥ 3:1 contrast with that
-background (the auditor computes it).
+**Color.** Hardcoded hex is perfectly valid (the Playground icon does this). Use
+`{{TOKEN}}` **only when the icon must respond to the app palette or variants** — e.g.
+`{{PRIMARY}}` for a single brand accent. Extra tokens (e.g. `{{PRIMARY_DEEP}}`) work if
+you add them to `icon-source.json.colors`.
 
-## 5. Reference: a valid glyph (structure)
+**Elements.** `<g> <path> <rect> <circle> <ellipse> <polygon> <line> <defs>
+<linearGradient> <radialGradient> <stop>`. Prefer exact geometry (`A`, `Q`, `C`,
+concentric radii). `<image>` (embedded raster) is discouraged — monochrome then derives
+from alpha only and the file balloons.
 
-Transparent, symbol-only, one accent token, centered, monochrome-safe:
+**Effects.** Soft gradients = good. `<filter>` (blur/glow/grain) renders inconsistently
+and usually reads as an AI tell — avoid.
+
+## 4. Sizing & legibility
+
+- Content sized for the iOS `safeZone` (~0.66) and Android `glyphScale` (~0.45). The
+  factory only shrinks — don't author edge-to-edge.
+- Must read at **16 px**, in **grayscale**, and on light and dark.
+- Keep one focal point; when in doubt, fewer shapes and more negative space.
+
+## 5. Color & background synchronization (only matters in symbol/rich-gradient)
+
+In `symbol` / `rich-gradient` mode the background is supplied by Portal, so sync the
+three surfaces to the same hex:
+- `icon-source.json.background` (drives the iOS `.icon` fill),
+- `android.adaptiveIcon.backgroundColor` (in the preserved `portal:custom` block),
+- `splashBackgroundColor`.
+
+Accent (`PRIMARY`) should keep ≥ 3:1 contrast with that background. In `composed` mode
+these surfaces are redundant — the tile already carries the background.
+
+## 6. A valid symbol-mode glyph (structure reference)
 
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
@@ -92,15 +102,14 @@ Transparent, symbol-only, one accent token, centered, monochrome-safe:
 </svg>
 ```
 
-(A background rect, a `<text>`, or a full-bleed tile would all violate this
-contract.)
+For a **composed** reference see `../../../../../docs/examples/playground/icon.svg`.
 
-## 6. Verify
+## 7. Verify
 
 ```bash
-node scripts/audit-icon.mjs [projectRoot]
+node scripts/render.mjs [projectRoot]        # fast contact sheet, no factory run
+node scripts/audit-icon.mjs [projectRoot]    # measured: mode, centering, contrast, ...
+node scripts/preview.mjs [projectRoot]       # the factory: generate → check → preview
 ```
 
-The auditor flags: non-transparent corners, off-center bbox, safe-zone violations,
-low contrast vs background, weak monochrome separability, small-size collapse, and
-background mismatch across the three surfaces.
+Iterate with `render.mjs`; run the factory once at the end.
