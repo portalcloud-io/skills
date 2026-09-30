@@ -1,54 +1,16 @@
 #!/usr/bin/env node
 // Drive the Portal icon factory: generate → check → preview (collage).
 // Usage: node scripts/preview.mjs [projectRoot] [--no-generate] [--collage <path>]
-import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
+import { findProjectRoot, resolvePortal } from './lib/project.mjs';
 
 const argv = process.argv.slice(2);
 const noGenerate = argv.includes('--no-generate');
 const collageIdx = argv.indexOf('--collage');
 const collageArg = collageIdx >= 0 ? argv[collageIdx + 1] : null;
 const explicit = argv.find((a) => !a.startsWith('--') && a !== collageArg);
-
-function exists(p) {
-  try {
-    return fs.existsSync(p);
-  } catch {
-    return false;
-  }
-}
-
-function findProjectRoot(start) {
-  let dir = path.resolve(start);
-  for (;;) {
-    if (
-      exists(path.join(dir, 'assets', 'icon-source.json')) ||
-      exists(path.join(dir, 'app.config.ts'))
-    ) {
-      return dir;
-    }
-    const parent = path.dirname(dir);
-    if (parent === dir) return path.resolve(start);
-    dir = parent;
-  }
-}
-
-function resolvePortal(root) {
-  const localBin = path.join(root, 'node_modules', '.bin', 'portal');
-  if (exists(localBin)) return { command: localBin, prefix: [] };
-  try {
-    const req = createRequire(path.join(root, 'package.json'));
-    const entry = req.resolve('@portalcloud-io/cli');
-    const bin = path.join(path.dirname(path.dirname(entry)), 'bin', 'cli.js');
-    if (exists(bin)) return { command: process.execPath, prefix: [bin] };
-  } catch {
-    /* npx fallback */
-  }
-  return { command: 'npx', prefix: ['--yes', '@portalcloud-io/cli'] };
-}
 
 const root = findProjectRoot(explicit || process.cwd());
 const portal = resolvePortal(root);

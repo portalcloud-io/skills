@@ -1,74 +1,14 @@
 #!/usr/bin/env node
 // Inspect a Portal project's icon state and resolve the toolchain.
 // Usage: node scripts/detect.mjs [projectRoot] [--pretty]
-import fs from 'node:fs';
 import path from 'node:path';
-import { createRequire } from 'node:module';
+import { exists, findProjectRoot, readJson, readText, resolvePortal } from './lib/project.mjs';
 
 const args = process.argv.slice(2);
 const pretty = args.includes('--pretty');
 const explicit = args.find((a) => !a.startsWith('--'));
 
-function exists(p) {
-  try {
-    return fs.existsSync(p);
-  } catch {
-    return false;
-  }
-}
-
-function findProjectRoot(start) {
-  let dir = path.resolve(start);
-  for (;;) {
-    if (
-      exists(path.join(dir, 'assets', 'icon-source.json')) ||
-      exists(path.join(dir, 'assets', 'glyph.svg')) ||
-      exists(path.join(dir, 'app.config.ts')) ||
-      exists(path.join(dir, 'app.json'))
-    ) {
-      return dir;
-    }
-    const parent = path.dirname(dir);
-    if (parent === dir) return path.resolve(start);
-    dir = parent;
-  }
-}
-
-function readJson(p) {
-  try {
-    return JSON.parse(fs.readFileSync(p, 'utf8'));
-  } catch {
-    return null;
-  }
-}
-
-function readText(p) {
-  try {
-    return fs.readFileSync(p, 'utf8');
-  } catch {
-    return '';
-  }
-}
-
-function resolvePortal(root) {
-  const localBin = path.join(root, 'node_modules', '.bin', 'portal');
-  if (exists(localBin)) {
-    return { kind: 'local-bin', bin: localBin, command: localBin, prefix: [] };
-  }
-  try {
-    const req = createRequire(path.join(root, 'package.json'));
-    const entry = req.resolve('@portalcloud-io/cli');
-    // entry ~ <cliPkg>/dist/index.js  → package root is dirname(dirname(entry))
-    const pkgRoot = path.dirname(path.dirname(entry));
-    const bin = path.join(pkgRoot, 'bin', 'cli.js');
-    if (exists(bin)) {
-      return { kind: 'resolved-bin', bin, command: process.execPath, prefix: [bin] };
-    }
-  } catch {
-    /* fall through to npx */
-  }
-  return { kind: 'npx', bin: null, command: 'npx', prefix: ['--yes', '@portalcloud-io/cli'] };
-}
+const FULL_BLEED_RECT = /<rect\b[^>]*(?:width|height)\s*=\s*["']?(?:1024|100%)/i;
 
 function extractConfigSurfaces(text) {
   const surfaces = {};
@@ -100,6 +40,8 @@ const glyphPath = path.join(root, 'assets', 'glyph.svg');
 const configPath = path.join(root, 'assets', 'icon-source.json');
 const config = readJson(configPath);
 const portal = resolvePortal(root);
+const glyphText = readText(glyphPath);
+const usesTokens = /\{\{\s*[A-Za-z0-9_]+\s*\}\}/.test(glyphText);
 
 const result = {
   projectRoot: root,
@@ -117,6 +59,14 @@ const result = {
         safeZone: config.safeZone,
         androidGlyphScale: config.android?.glyphScale ?? null,
         badges: config.badges ? Object.keys(config.badges) : [],
+        usesTokens,
+        // Heuristic (text-only); audit-icon.mjs confirms it from the raster.
+        composition: FULL_BLEED_RECT.test(glyphText) ? 'composed' : 'symbol',
+        undefinedTokens: usesTokens
+          ? [...new Set([...glyphText.matchAll(/\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g)].map((m) => m[1]))].filter(
+              (t) => !(config.colors && t in config.colors),
+            )
+          : [],
       }
     : null,
   backgroundSurfaces: { iconSource: config?.background ?? null },
@@ -140,6 +90,9 @@ if (!result.files.hasIconSource || !result.files.hasGlyph) {
 }
 if (!appConfigText) {
   result.warnings.push('app.config.ts not found; cannot verify background sync surfaces');
+}
+if (result.icon?.undefinedTokens?.length) {
+  result.warnings.push(`undefined color tokens: ${result.icon.undefinedTokens.map((t) => `{{${t}}}`).join(', ')}`);
 }
 
 process.stdout.write(`${pretty ? JSON.stringify(result, null, 2) : JSON.stringify(result)}\n`);
